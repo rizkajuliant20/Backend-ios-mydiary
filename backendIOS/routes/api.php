@@ -22,3 +22,9 @@ Route::post('guest','GuestController@store');
 Route::get('guest/{username}','GuestController@show'); 
 Route::put('/guest/{username}','GuestController@update'); 
 Route::delete('/guest/{username}','GuestController@destroy');
+
+Route::get('note','NoteController@index'); 
+Route::post('note','NoteController@store'); 
+Route::get('note/{title}','NoteController@show'); 
+Route::put('/note/{title}','NoteController@update'); 
+Route::delete('/note/{title}','NoteController@destroy');
