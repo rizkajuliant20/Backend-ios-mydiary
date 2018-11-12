@@ -20,6 +20,7 @@ class CreateGuestsTable extends Migration
             $table->string('no_hp');
             $table->string('username');
             $table->string('password');
+            $table->integer('check');
             $table->timestamps();
         });
     }

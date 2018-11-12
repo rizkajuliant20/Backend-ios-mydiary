@@ -43,6 +43,7 @@ class GuestController extends Controller
         $guest->username = $request->username;
         $guest->password = $request->password;
         $guest->no_hp = $request->no_hp;
+        $guest->check = $request->check;
 
         $success = $guest->save();
 

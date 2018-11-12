@@ -8,5 +8,5 @@ class Guest extends Model
 {
     protected $table = "guests";
 
-    protected $fillable = ['name','email','username','no_hp','password'];
+    protected $fillable = ['name','email','username','no_hp','password','check'];
 }
