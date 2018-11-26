@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
-use App\Guest;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Hash;
+use App\Mail\EmailVerif;
+use App\User;
+use Carbon\Carbon;
 
 class GuestController extends Controller
 {
@@ -15,7 +18,7 @@ class GuestController extends Controller
      */
     public function index()
     {
-        $guest=Guest::all();
+        $guest=User::all();
         return response()->json($guest,200);
     }
 
@@ -37,19 +40,20 @@ class GuestController extends Controller
      */
     public function store(Request $request)
     {
-        $guest = new Guest;
+        $guest = new User;
         $guest->name = $request->name;
         $guest->email = $request->email;
         $guest->username = $request->username;
-        $guest->password = $request->password;
+        $guest->password = Hash::make($request->password);
         $guest->no_hp = $request->no_hp;
-        $guest->check = $request->check;
+        $guest->email_token = str_random(10);
 
         $success = $guest->save();
 
         if(!$success){
             return response()->json('Error Saving',500);
         }else{
+            Mail::to($guest->email)->send(new EmailVerif($request->email));
             return response()->json('Successed Saving the Data!', 201);
         }
     }
@@ -62,7 +66,7 @@ class GuestController extends Controller
      */
     public function show($id)
     {
-        $guest=Guest::where('username',$id)->get();
+        $guest=User::where('username',$id)->get();
 
         if(is_null($guest)){
             return response()->json('Not Found', 404);
@@ -89,20 +93,16 @@ class GuestController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $username)
     {
-        $guest=Guest::where('username',$id)->first();
+        $guest=User::where('username',$username)->first();
 
-        if(!is_null($request->username)){
-            $guest->username = $request->username;
-        }if(!is_null($request->name)){
+        if(!is_null($request->name)){
             $guest->name = $request->name;
-        }if(!is_null($request->email)){
-            $guest->email = $request->email;
         }if(!is_null($request->no_hp)){
             $guest->no_hp = $request->no_hp;
         }if(!is_null($request->password)){
-            $guest->password = $request->password;
+            $guest->password = Hash::make($request->password);
         }
 
         $success = $guest->save();
@@ -120,9 +120,9 @@ class GuestController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy($username)
     {
-        $guest=Guest::where('username',$id)->get()->each;
+        $guest=User::where('username',$username)->get()->each;
 
         if(is_null($guest)){
             return response()->json('Not Found',404);
@@ -134,6 +134,37 @@ class GuestController extends Controller
             return response()->json('Error Deleting',500);
         }else{
             return response()->json('Delete Successed',200);
+        }
+    }
+
+    public function verif($email_token)
+    {
+        $guest = User::where('email_token', $email_token)->where('email_verified_at', null)->first();
+        if($guest->count()>0){
+            $guest->email_verified_at = Carbon::now();
+            $success = $guest->save();
+            if($success)
+                $message = "You are verified, enjoy our App... :)";
+            else
+                $message = "Verification failed...";
+        }
+    }
+
+    public function login(Request $request){
+        $guest = User::where('username', $request->username)->first();
+        if($guest){
+            if(Hash::check($request->password, $guest->password))
+            {
+                if($guest->email_verified_at==null)
+                    return response()->json('Account has not been verified');
+                else    
+                    return response()->json('OK', 200);
+
+            }else{
+                return response()->response()->json('repeat', 202);
+            }
+        }else{
+            return response()->json('repeat', 202);
         }
     }
 }

@@ -22,6 +22,8 @@ Route::post('guest','GuestController@store');
 Route::get('guest/{username}','GuestController@show'); 
 Route::put('/guest/{username}','GuestController@update'); 
 Route::delete('/guest/{username}','GuestController@destroy');
+Route::post('guest/login', 'GuestController@login');
+
 
 Route::get('note','NoteController@index'); 
 Route::post('note','NoteController@store'); 
